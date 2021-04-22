@@ -72,24 +72,26 @@ body {
                 <div class="title">
                     {{index+1}}、{{item.name}}
                 </div>
-                <tableContainer :table-content-data="item"
-                                :ref="setTables" />
+                <div class="container"
+                     :ref="(el)=>{setTables(el,item)}">
+                    <tableContainer :table-title-data="item"
+                                    :table-content-data="contentData" />
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" >
-import { reactive, toRefs, ref, watch, Ref, nextTick } from "vue";
+import { reactive, toRefs, ref } from "vue";
 import { deepCopy } from "./assets/js/deep-copy";
 import { asyncLoadScript } from "./assets/js/async-load-script";
 import tableContainer from "./components/table-container.vue";
-// import tableContentMixins from "./assets/js/table-content-mixins";
+import tableContentMixins from "./assets/js/table-content-mixins";
 import antiShakeMixins from "./assets/js/anti-shake";
 
 type Data = {
     titleData: any;
-    contentData: any;
 };
 
 type TableData = {
@@ -107,10 +109,10 @@ export default {
     setup() {
         let Data: Data = reactive({
             titleData: null,
-            contentData: null,
         });
         const tables: Tables = ref([]);
         const { antiShake } = antiShakeMixins();
+        const { contentData, loadTableContent } = tableContentMixins();
 
         function getTableList(res: Object) {
             console.log(res);
@@ -126,69 +128,34 @@ export default {
         );
         // 监听滚动条变化事件
         function addListerScroll(e: Event) {
-            // console.log(e);
-            // console.log(scrollContainer.value);
-            // const scrollNode =
-
             const target: any = e.target;
             const wTop = target.scrollTop;
             const wBottom = wTop + target.offsetHeight;
 
             const list: Array<string> = [];
-            tables.value.filter((index: any) => {
-                console.dir(index.node);
+            tables.value.forEach((index: any) => {
                 const top = index.node.offsetTop;
                 const bottom = top + index.node.offsetHeight;
-                // console.log(top, wBottom);
-                // console.log(bottom, wTop);
                 // 选择可视区域的表格
-                if (top < wBottom || bottom > wTop) {
-                    Data.titleData.children.forEach((item: any) => {
-                        if (item.type === index.key) {
-                            index.show = true;
-                        }
-                    });
+                if (bottom >= wTop && top <= wBottom) {
+                    console.log(index.key);
                     list.push(index.key);
                 }
-                // console.log(list);
-                loadTableContent(list);
             });
-        }
-        // 加载表格内容数据
-        function loadTableContent(list: Array<string>) {
-            list.forEach((index: string) => {
-                if (!Data.contentData[index]) {
-                    // 必然加载第一页
-                    asyncLoadScript(
-                        `/json/${index}-0.json?callback=getTableContent`,
-                        (res: Object) => {
-                            console.log(res);
-                        }
-                    );
-                }
-            });
+            loadTableContent(list);
         }
 
         // 赋值表格列表
-        function setTables(el: any) {
-            tables.value.push(el);
+        function setTables(el: HTMLElement, res: TableData) {
+            tables.value.push({
+                node: el,
+                key: res.type,
+            });
         }
-        nextTick(() => {
-            console.log(tables.value);
-        });
-        // watch(
-        //     tables,
-        //     (value) => {
-        //         console.log(value);
-        //     },
-        //     {
-        //         immediate: true,
-        //     }
-        // );
-
         return {
             ...toRefs(Data),
             setTables,
+            contentData,
             addListerScroll,
             antiShake,
         };
