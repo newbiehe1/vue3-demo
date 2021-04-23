@@ -11,6 +11,7 @@ export default function () {
         list.forEach((index: string) => {
             if (!contentData.value[index]) {
                 // 必然加载第一页
+                contentData.value[index] = {};
                 asyncLoadScript(
                     `/json/${index}-0.json?callback=getTableContent`,
                     (res: any) => {

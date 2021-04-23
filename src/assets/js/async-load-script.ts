@@ -20,14 +20,12 @@ type Callback = (res: Object) => void;
 function createCallback(
     url: string,
     callback: Callback,
-    dom: HTMLElement,
     isRemoveCallback: Boolean
 ) {
     const params: Json = getUrlParams(url);
     if (!(window as any)[params.callback]) {
         (window as any)[params.callback] = (res: Object) => {
             callback(res);
-            document.body.removeChild(dom);
             if (isRemoveCallback) {
                 delete (window as any)[params.callback];
             }
@@ -70,10 +68,14 @@ export function asyncLoadScript(
     fn: Callback,
     isRemoveCallback: Boolean = false
 ) {
+    createCallback(url, fn, isRemoveCallback);
     const scriptDom = document.createElement("script");
     scriptDom.setAttribute("src", url);
 
     document.body.appendChild(scriptDom);
-
-    createCallback(url, fn, scriptDom, isRemoveCallback);
+    scriptDom.onload = function () {
+        setTimeout(() => {
+            document.body.removeChild(scriptDom);
+        }, 500);
+    };
 }

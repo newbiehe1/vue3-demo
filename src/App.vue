@@ -10,6 +10,7 @@ body {
 </style>
 <template>
     <div class="wrap"
+         ref="scrollNode"
          @scroll="antiShake(addListerScroll,$event)">
         <div class="top">
             <div class="h1">
@@ -75,7 +76,7 @@ body {
                 <div class="container"
                      :ref="(el)=>{setTables(el,item)}">
                     <tableContainer :table-title-data="item"
-                                    :table-content-data="contentData" />
+                                    :table-content-data="contentData&&contentData[item.type]" />
                 </div>
             </div>
         </div>
@@ -83,7 +84,7 @@ body {
 </template>
 
 <script lang="ts" >
-import { reactive, toRefs, ref } from "vue";
+import { reactive, toRefs, ref, nextTick } from "vue";
 import { deepCopy } from "./assets/js/deep-copy";
 import { asyncLoadScript } from "./assets/js/async-load-script";
 import tableContainer from "./components/table-container.vue";
@@ -101,6 +102,9 @@ type TableData = {
 type Tables = {
     value: any;
 };
+type ScrollNode = {
+    value: null | HTMLElement;
+};
 
 export default {
     components: {
@@ -113,12 +117,16 @@ export default {
         const tables: Tables = ref([]);
         const { antiShake } = antiShakeMixins();
         const { contentData, loadTableContent } = tableContentMixins();
+        const scrollNode: ScrollNode = ref(null);
 
+        // 获取表格列表
         function getTableList(res: Object) {
-            console.log(res);
             const data = deepCopy(res);
             data.child.forEach((index: any) => (index.show = false));
             Data.titleData = data;
+            nextTick(() => {
+                if (scrollNode.value) getClientTable(scrollNode.value);
+            });
         }
         // 异步加载页面主框架
         asyncLoadScript(
@@ -129,16 +137,19 @@ export default {
         // 监听滚动条变化事件
         function addListerScroll(e: Event) {
             const target: any = e.target;
+            getClientTable(target);
+        }
+
+        // 获取可视区域的表格
+        function getClientTable(target: HTMLElement) {
             const wTop = target.scrollTop;
             const wBottom = wTop + target.offsetHeight;
-
             const list: Array<string> = [];
             tables.value.forEach((index: any) => {
                 const top = index.node.offsetTop;
                 const bottom = top + index.node.offsetHeight;
                 // 选择可视区域的表格
                 if (bottom >= wTop && top <= wBottom) {
-                    console.log(index.key);
                     list.push(index.key);
                 }
             });
@@ -155,6 +166,7 @@ export default {
         return {
             ...toRefs(Data),
             setTables,
+            scrollNode,
             contentData,
             addListerScroll,
             antiShake,
