@@ -1,22 +1,20 @@
-import { ref } from "vue";
+import { Ref, ref } from "vue";
 import { asyncLoadScript } from "./async-load-script";
 import { deepCopy } from "./deep-copy";
-type Tables = {
-    value: any;
-};
+import { ListItem } from "./custom-type";
+
 export default function () {
-    const contentData: Tables = ref({});
+    const contentData: Ref<any> = ref({});
     // 加载表格内容数据
-    function loadTableContent(list: Array<string>) {
-        list.forEach((index: string) => {
-            if (!contentData.value[index]) {
+    function loadTableContent(list: ListItem[]) {
+        list.forEach((index: ListItem) => {
+            if (!contentData.value[index.type]) {
                 // 必然加载第一页
-                contentData.value[index] = {};
+                contentData.value[index.type] = {};
                 asyncLoadScript(
-                    `/json/${index}-0.json?callback=getTableContent`,
-                    (res: any) => {
-                        contentData.value[res.type] = deepCopy(res.list);
-                    }
+                    `/json/${index}-${
+                        index.current - 1
+                    }.json?callback=getTableContent`
                 );
             }
         });

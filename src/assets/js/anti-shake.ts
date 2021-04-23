@@ -1,7 +1,8 @@
 // 防抖
-type Fn = (e: any) => void;
-type TimeOut = Ref<null | number>;
-import { Ref, ref } from "vue";
+
+import { ref } from "vue";
+import { TimeOut, Fn } from "./custom-type";
+
 export default function () {
     let timeOut: TimeOut = ref(null);
 

@@ -1,34 +1,12 @@
-/* type  interface 区别
-    
+import { Callback, Json, TableTitleData } from "./custom-type";
 
-    type 可以声明任何类型
-    type 继承用&
-    type a = typeof document.getElementById('test');
-
-    interface 只能声明  object function class
-    interface 继承用 extends
-    interface 可以重复声明
-
-*/
-
-type Json = {
-    [key: string]: string;
-};
-
-type Callback = (res: Object) => void;
 // 创建 callback 方法
-function createCallback(
-    url: string,
-    callback: Callback,
-    isRemoveCallback: Boolean
-) {
+function createCallback(url: string, callback: Callback) {
     const params: Json = getUrlParams(url);
     if (!(window as any)[params.callback]) {
-        (window as any)[params.callback] = (res: Object) => {
+        (window as any)[params.callback] = (res: TableTitleData) => {
             callback(res);
-            if (isRemoveCallback) {
-                delete (window as any)[params.callback];
-            }
+            delete (window as any)[params.callback];
         };
     }
 }
@@ -63,12 +41,10 @@ export function getUrlParams(url: string): Json {
 }
 
 // 异步加载 jsonp
-export function asyncLoadScript(
-    url: string,
-    fn: Callback,
-    isRemoveCallback: Boolean = false
-) {
-    createCallback(url, fn, isRemoveCallback);
+export function asyncLoadScript(url: string, fn?: Callback) {
+    if (fn) {
+        createCallback(url, fn);
+    }
     const scriptDom = document.createElement("script");
     scriptDom.setAttribute("src", url);
 
