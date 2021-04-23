@@ -4,6 +4,7 @@ body {
     width: 100%;
     height: 100%;
     overflow: hidden;
+    background-color: #fff;
 }
 </style>
 <style lang="scss" scoped src="./assets/css/app.scss">
@@ -76,6 +77,10 @@ body {
                 <div class="container"
                      :ref="(el)=>{setTables(el,item)}">
                     <tableContainer :table-title-data="item"
+                                    :total="item.total"
+                                    :type="item.type"
+                                    :current="item.current"
+                                    @go-page="goPage"
                                     :table-content-data="contentData&&contentData[item.type]" />
                 </div>
             </div>
@@ -90,21 +95,8 @@ import { asyncLoadScript } from "./assets/js/async-load-script";
 import tableContainer from "./components/table-container.vue";
 import tableContentMixins from "./assets/js/table-content-mixins";
 import antiShakeMixins from "./assets/js/anti-shake";
-
-type Data = {
-    titleData: any;
-};
-
-type TableData = {
-    type: string;
-} & Object;
-
-type Tables = {
-    value: any;
-};
-type ScrollNode = {
-    value: null | HTMLElement;
-};
+import { Data, TableData, Tables, ScrollNode } from "./assets/js/custom-type";
+import { ListItem } from "./assets/js/custom-type";
 
 export default {
     components: {
@@ -122,7 +114,9 @@ export default {
         // 获取表格列表
         function getTableList(res: Object) {
             const data = deepCopy(res);
-            data.child.forEach((index: any) => (index.show = false));
+            data.child.forEach((index: any) => {
+                index.current = 1;
+            });
             Data.titleData = data;
             nextTick(() => {
                 if (scrollNode.value) getClientTable(scrollNode.value);
@@ -131,8 +125,7 @@ export default {
         // 异步加载页面主框架
         asyncLoadScript(
             "./json/index.json?callback=getTableList",
-            getTableList,
-            true
+            getTableList
         );
         // 监听滚动条变化事件
         function addListerScroll(e: Event) {
@@ -144,17 +137,32 @@ export default {
         function getClientTable(target: HTMLElement) {
             const wTop = target.scrollTop;
             const wBottom = wTop + target.offsetHeight;
-            const list: Array<string> = [];
+            const list: ListItem[] = [];
             tables.value.forEach((index: any) => {
                 const top = index.node.offsetTop;
                 const bottom = top + index.node.offsetHeight;
                 // 选择可视区域的表格
                 if (bottom >= wTop && top <= wBottom) {
-                    list.push(index.key);
+                    list.push({
+                        type: index.key,
+                        current: 1,
+                    });
                 }
             });
             loadTableContent(list);
         }
+        function goPage(data: ListItem) {
+            asyncLoadScript(
+                `/json/${data.type}-${
+                    data.current - 1
+                }.json?callback=getTableContent`
+            );
+        }
+        (window as any).getTableContent = (res: any) => {
+            contentData.value[res.type] = deepCopy(res.list);
+            const data = Data.titleData.child.find(index=>index.type === res.type);
+            data.current = 
+        };
 
         // 赋值表格列表
         function setTables(el: HTMLElement, res: TableData) {
