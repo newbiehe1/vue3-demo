@@ -1,10 +1,25 @@
 <style lang="scss" src="../assets/css/table-foot.scss" scoped>
 </style>
+<style src="../../node_modules/pure-css-loader/dist/css-loader.css" >
+</style>
 <style lang="scss"  scoped>
+.loader.is-active {
+    width: 100%;
+    height: 450px;
+    position: relative;
+    &::before,
+    &::after {
+        position: absolute;
+    }
+}
 .scroll-table {
     width: 100%;
     height: 450px;
     overflow: auto;
+    .null {
+        width: 100%;
+        height: 410px;
+    }
     table {
         margin-top: 15px;
         min-width: 100%;
@@ -21,7 +36,7 @@
                 }
             }
             td {
-                &:first-child {
+                &.first {
                     border-left: 1px solid #ccc;
                 }
                 border-bottom: 1px solid #ccc;
@@ -35,11 +50,18 @@
                     min-width: 50px;
                 }
             }
+            &.last {
+                td {
+                    border-bottom: 0;
+                }
+            }
         }
     }
 }
 </style>
 <template>
+    <div class="loader loader-double is-active"
+         v-show="loading"></div>
 
     <div class="scroll-table">
         <table border="0"
@@ -54,9 +76,11 @@
                 </th>
             </tr>
             <tr v-for="(contentData,n) in list"
+                :class="{last:n===list.length-1}"
                 :key="n">
-                <td v-for="item in tableTitleData.tableTitle"
-                    :key="item.key">
+                <td v-for="(item,m) in tableTitleData.tableTitle"
+                    :key="item.key"
+                    :class="{first:m===0}">
                     <div>
                         {{contentData[item.key]}}
                     </div>
@@ -68,15 +92,16 @@
              v-if="!Array.isArray(tableContentData)|| Array.isArray(tableContentData)&&tableContentData.length<1">
             <h2>暂无相关数据！</h2>
         </div>
-
     </div>
-    <div class="v-table-foot">
+    <div class="v-table-foot"
+         v-if="Array.isArray(tableContentData)&&tableContentData.length>0">
         <div class="page-num-list">
             <input type="number"
                    class="rows"
+                   disabled
                    @keydown.enter="changeRows"
                    @blur="changeRows"
-                   v-model.trim="pageSize">
+                   v-model.trim="pageSize">条/页
             <div class="jump-table">
                 <img src="../assets/img/table/first.png"
                      :class="'to-first'+(firstIsGray?' gray':'')"
@@ -122,10 +147,11 @@ import { Props } from "../assets/js/custom-type";
 
 export default {
     props: ["tableContentData", "tableTitleData", "total", "type", "current"],
-
+    emits: ["goPage"],
     setup(props: Props, context: SetupContext) {
         const Data = reactive({
             list: [],
+            loading: false,
         });
 
         watch(props, (data, oldData) => {
@@ -137,9 +163,7 @@ export default {
                 Data.list = deepCopy(data.tableContentData);
             }
         });
-        // watch(Data, (data) => {
-        //     console.log(data.current);
-        // });
+
         return {
             ...toRefs(Data),
             ...tableFootMixins(Data, props, context),

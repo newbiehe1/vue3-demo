@@ -7,6 +7,7 @@ let config = {
     productionSourceMap: false, //map文件
     css: {
         requireModuleExtension: false,
+        extract: false,
     },
     chainWebpack: (res) => {
         res.module

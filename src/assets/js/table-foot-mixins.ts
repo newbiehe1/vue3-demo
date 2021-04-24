@@ -1,7 +1,5 @@
-import { reactive, toRefs, computed, AppContext, SetupContext } from "vue";
-import { asyncLoadScript } from "./async-load-script";
-import { deepCopy } from "./deep-copy";
-import { TableTitleData, Props } from "./custom-type";
+import { reactive, toRefs, computed, SetupContext } from "vue";
+import { Props } from "./custom-type";
 
 export default function (res: any, props: Props, context: SetupContext) {
     const Data = reactive({
@@ -36,6 +34,8 @@ export default function (res: any, props: Props, context: SetupContext) {
     function changeRows() {}
     // 去指定页面
     function goPage(val: number) {
+        res.loading = true;
+        Data.jumpVal = val;
         context.emit("goPage", {
             current: val,
             type: props.type,
@@ -65,7 +65,16 @@ export default function (res: any, props: Props, context: SetupContext) {
         if (preIsGray.value) return null;
         goPage(props.current - 1);
     }
-
+    // 跳页
+    function jumpPage() {
+        if (Data.jumpVal > props.total) {
+            goPage(props.total);
+        } else if (Data.jumpVal < 1) {
+            goPage(1);
+        } else {
+            goPage(Data.jumpVal);
+        }
+    }
     return {
         toLastPage,
         changeRows,
@@ -79,5 +88,6 @@ export default function (res: any, props: Props, context: SetupContext) {
         lastIsGray,
         startRecord,
         endRecord,
+        jumpPage,
     };
 }

@@ -81,6 +81,7 @@ body {
                                     :type="item.type"
                                     :current="item.current"
                                     @go-page="goPage"
+                                    :ref="(el)=>{setTableChilds(el,item)}"
                                     :table-content-data="contentData&&contentData[item.type]" />
                 </div>
             </div>
@@ -105,10 +106,13 @@ export default {
     setup() {
         let Data: Data = reactive({
             titleData: null,
+            tableChild: {},
         });
         const tables: Tables = ref([]);
         const { antiShake } = antiShakeMixins();
-        const { contentData, loadTableContent } = tableContentMixins();
+        const { contentData, loadTableContent, goPage } = tableContentMixins(
+            Data
+        );
         const scrollNode: ScrollNode = ref(null);
 
         // 获取表格列表
@@ -151,26 +155,19 @@ export default {
             });
             loadTableContent(list);
         }
-        function goPage(data: ListItem) {
-            asyncLoadScript(
-                `/json/${data.type}-${
-                    data.current - 1
-                }.json?callback=getTableContent`
-            );
-        }
-        (window as any).getTableContent = (res: any) => {
-            contentData.value[res.type] = deepCopy(res.list);
-            const data = Data.titleData.child.find(index=>index.type === res.type);
-            data.current = 
-        };
 
-        // 赋值表格列表
+        // 获取 表格element  列表
         function setTables(el: HTMLElement, res: TableData) {
             tables.value.push({
                 node: el,
                 key: res.type,
             });
         }
+        // 获取 子表格 vue 列表
+        function setTableChilds(el: any, res: TableData) {
+            Data.tableChild[res.type] = el;
+        }
+
         return {
             ...toRefs(Data),
             setTables,
@@ -178,6 +175,8 @@ export default {
             contentData,
             addListerScroll,
             antiShake,
+            goPage,
+            setTableChilds,
         };
     },
 };

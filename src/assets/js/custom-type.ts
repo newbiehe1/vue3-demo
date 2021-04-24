@@ -21,9 +21,12 @@ export type Props = {
     current: number;
 };
 
-export type Data = {
+export interface Data {
     titleData: any;
-};
+    tableChild: {
+        [key: string]: any;
+    };
+}
 
 export type Tables = Ref<any[]>;
 
@@ -61,10 +64,22 @@ export interface TableTitleData extends TableContentData {
     mobile: type1;
     taskNo: type1;
     taskName: type1;
-    child: any[];
+    child: ChildItem[];
 }
 
 export type ListItem = {
     type: string;
     current: number;
+};
+
+export type ChildItem = {
+    total: number;
+    name: string;
+    type: string;
+    tableTitle: TableItem[];
+} & ListItem;
+
+export type TableItem = {
+    key: string;
+    name: string;
 };

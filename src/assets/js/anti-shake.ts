@@ -12,7 +12,7 @@ export default function () {
         }
         timeOut.value = setTimeout(() => {
             fn(e);
-        }, 100);
+        }, 500);
     }
     return {
         antiShake,
