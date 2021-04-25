@@ -63,7 +63,8 @@
     <div class="loader loader-double is-active"
          v-show="loading"></div>
 
-    <div class="scroll-table">
+    <div class="scroll-table"
+         v-show="!loading">
         <table border="0"
                ellpadding="0"
                cellspacing="0">
@@ -94,7 +95,8 @@
         </div>
     </div>
     <div class="v-table-foot"
-         v-if="Array.isArray(tableContentData)&&tableContentData.length>0">
+         v-show="!loading"
+         v-if="Number(total)>=1">
         <div class="page-num-list">
             <input type="number"
                    class="rows"
@@ -139,7 +141,8 @@
         <div class="clear"></div>
     </div>
 </template>
-<script lang="ts">
+
+<script >
 import { reactive, SetupContext, toRefs, watch } from "vue";
 import { deepCopy } from "../assets/js/deep-copy";
 import tableFootMixins from "../assets/js/table-foot-mixins";
@@ -148,7 +151,7 @@ import { Props } from "../assets/js/custom-type";
 export default {
     props: ["tableContentData", "tableTitleData", "total", "type", "current"],
     emits: ["goPage"],
-    setup(props: Props, context: SetupContext) {
+    setup(props, context) {
         const Data = reactive({
             list: [],
             loading: false,

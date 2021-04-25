@@ -89,7 +89,7 @@ body {
     </div>
 </template>
 
-<script lang="ts" >
+<script >
 import { reactive, toRefs, ref, nextTick } from "vue";
 import { deepCopy } from "./assets/js/deep-copy";
 import { asyncLoadScript } from "./assets/js/async-load-script";
@@ -104,21 +104,21 @@ export default {
         tableContainer,
     },
     setup() {
-        let Data: Data = reactive({
+        let Data = reactive({
             titleData: null,
             tableChild: {},
         });
-        const tables: Tables = ref([]);
+        const tables = ref([]);
         const { antiShake } = antiShakeMixins();
         const { contentData, loadTableContent, goPage } = tableContentMixins(
             Data
         );
-        const scrollNode: ScrollNode = ref(null);
+        const scrollNode = ref(null);
 
         // 获取表格列表
-        function getTableList(res: Object) {
+        function getTableList(res) {
             const data = deepCopy(res);
-            data.child.forEach((index: any) => {
+            data.child.forEach((index) => {
                 index.current = 1;
             });
             Data.titleData = data;
@@ -132,17 +132,17 @@ export default {
             getTableList
         );
         // 监听滚动条变化事件
-        function addListerScroll(e: Event) {
-            const target: any = e.target;
+        function addListerScroll(e) {
+            const target = e.target;
             getClientTable(target);
         }
 
         // 获取可视区域的表格
-        function getClientTable(target: HTMLElement) {
+        function getClientTable(target) {
             const wTop = target.scrollTop;
             const wBottom = wTop + target.offsetHeight;
-            const list: ListItem[] = [];
-            tables.value.forEach((index: any) => {
+            const list = [];
+            tables.value.forEach((index) => {
                 const top = index.node.offsetTop;
                 const bottom = top + index.node.offsetHeight;
                 // 选择可视区域的表格
@@ -157,14 +157,14 @@ export default {
         }
 
         // 获取 表格element  列表
-        function setTables(el: HTMLElement, res: TableData) {
+        function setTables(el, res) {
             tables.value.push({
                 node: el,
                 key: res.type,
             });
         }
         // 获取 子表格 vue 列表
-        function setTableChilds(el: any, res: TableData) {
+        function setTableChilds(el, res) {
             Data.tableChild[res.type] = el;
         }
 

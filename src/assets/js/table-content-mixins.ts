@@ -12,7 +12,7 @@ export default function (parentData: Data) {
                 // 必然加载第一页
                 contentData.value[index.type] = {};
                 asyncLoadScript(
-                    `/json/${index.type}-${
+                    `./json/${index.type}-${
                         index.current - 1
                     }.json?callback=getTableContent`
                 );
@@ -22,7 +22,7 @@ export default function (parentData: Data) {
     //   加载 对应表格的 某页数据
     function goPage(data: ListItem) {
         asyncLoadScript(
-            `/json/${data.type}-${
+            `./json/${data.type}-${
                 data.current - 1
             }.json?callback=getTableContent`
         );
@@ -31,6 +31,12 @@ export default function (parentData: Data) {
             (index: ChildItem) => index.type === data.type
         );
         item.current = data.current;
+
+        // 加载超时
+        const timeOut = 3000;
+        setTimeout(() => {
+            parentData.tableChild[data.type].loading = false;
+        }, timeOut);
     }
     //   声明jsonp方法
     (window as any).getTableContent = (res: TableContentData) => {
